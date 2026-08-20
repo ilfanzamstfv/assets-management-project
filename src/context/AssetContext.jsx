@@ -32,6 +32,7 @@ import {
     updateCategory,
     updateLocation,
     updateSupplier,
+    updatePurchaseHistory,
     updateRolePermissions,
     updateUser,
 } from "@/services/assets"
@@ -88,6 +89,7 @@ export function AssetProvider({ children }) {
     const [selectedItemDetail, setSelectedItemDetail] = useState(null)
     const [editingItemId, setEditingItemId] = useState("")
     const [editingUserId, setEditingUserId] = useState("")
+    const [editingPurchaseId, setEditingPurchaseId] = useState("")
     const [itemForm, setItemForm] = useState(emptyItemForm)
     const [purchaseForm, setPurchaseForm] = useState({
         ...emptyPurchaseForm,
@@ -404,6 +406,14 @@ export function AssetProvider({ children }) {
         setUserForm(emptyUserForm)
     }
 
+    const resetPurchaseForm = () => {
+        setEditingPurchaseId("")
+        setPurchaseForm({
+            ...emptyPurchaseForm,
+            purchaseDate: new Date().toISOString().slice(0, 10),
+        })
+    }
+
     const saveItem = async () => {
         const payload = {
             name: itemForm.name,
@@ -475,26 +485,44 @@ export function AssetProvider({ children }) {
         }
     }
 
+    const handleEditPurchase = (purchase) => {
+        setEditingPurchaseId(purchase.id)
+        setPurchaseForm({
+            itemId: String(purchase.itemId || ""),
+            supplierId: String(purchase.supplierId || ""),
+            quantity: String(purchase.quantity ?? ""),
+            unitPrice: String(purchase.unitPrice || ""),
+            purchaseDate: purchase.purchaseDate?.slice(0, 10) || "",
+            note: purchase.note || "",
+        })
+    }
+
     const handlePurchaseSubmit = async (event) => {
         event.preventDefault()
         updateLoading("savePurchase", true)
         try {
-            await createPurchaseHistory({
+            const payload = {
                 itemId: Number(purchaseForm.itemId),
                 supplierId: Number(purchaseForm.supplierId),
                 quantity: Number(purchaseForm.quantity),
                 unitPrice: Number(purchaseForm.unitPrice),
                 purchaseDate: purchaseForm.purchaseDate,
                 note: purchaseForm.note,
-            })
-            setPurchaseForm({
-                ...emptyPurchaseForm,
-                purchaseDate: new Date().toISOString().slice(0, 10),
-            })
-            gooeyToast.success("Purchase saved", {
-                description: "Purchase history berhasil ditambahkan.",
-                preset: "smooth",
-            })
+            }
+            if (editingPurchaseId) {
+                await updatePurchaseHistory(editingPurchaseId, payload)
+                gooeyToast.success("Purchase updated", {
+                    description: "Riwayat pembelian berhasil diubah.",
+                    preset: "smooth",
+                })
+            } else {
+                await createPurchaseHistory(payload)
+                gooeyToast.success("Purchase saved", {
+                    description: "Purchase history berhasil ditambahkan.",
+                    preset: "smooth",
+                })
+            }
+            resetPurchaseForm()
             await Promise.all([fetchPurchases(), fetchItems(), fetchStock(), fetchDashboard()])
             if (selectedItemId) {
                 await fetchItemDetail(selectedItemId)
@@ -786,6 +814,7 @@ export function AssetProvider({ children }) {
         selectedItemId,
         editingItemId,
         editingUserId,
+        editingPurchaseId,
         itemForm,
         purchaseForm,
         userForm,
@@ -831,10 +860,12 @@ export function AssetProvider({ children }) {
         getItemName,
         resetItemForm,
         resetUserForm,
+        resetPurchaseForm,
         handleItemSubmit,
         handleEditItem,
         handleArchiveItem,
         handlePurchaseSubmit,
+        handleEditPurchase,
         handleDeletePurchase,
         handleUserSubmit,
         handleEditUser,

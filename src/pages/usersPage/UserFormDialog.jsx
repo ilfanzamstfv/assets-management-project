@@ -43,16 +43,16 @@ export default function UserFormDialog({
                     </div>
                     <div className="space-y-2">
                         <Label>Role <span className="text-red-500">*</span></Label>
-                        <DropdownMenu>
+                        <DropdownMenu modal={false}>
                             <DropdownMenuTrigger asChild>
                                 <button type="button" className="flex w-full h-9 items-center justify-between rounded-lg border border-input bg-background px-3 text-sm shadow-sm">
-                                    {userForm.roleId ? roles.find((r) => String(r.id) === String(userForm.roleId))?.name : "Choose role"}
+                                    {userForm.roleId ? roles.find((r) => String(r.id) === String(userForm.roleId))?.name : "Select role"}
                                     <ChevronDown className="h-4 w-4 opacity-50" />
                                 </button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent style={{ width: 'var(--radix-dropdown-menu-trigger-width)' }}>
                                 <DropdownMenuItem onClick={() => setUserForm((current) => ({ ...current, roleId: "" }))}>
-                                    Pilih role
+                                    Select role
                                 </DropdownMenuItem>
                                 {roles.map((role) => (
                                     <DropdownMenuItem key={role.id} onClick={() => setUserForm((current) => ({ ...current, roleId: role.id }))}>
@@ -64,7 +64,7 @@ export default function UserFormDialog({
                     </div>
                     <div className="space-y-2">
                         <Label>Status <span className="text-red-500">*</span></Label>
-                        <DropdownMenu>
+                        <DropdownMenu modal={false}>
                             <DropdownMenuTrigger asChild>
                                 <button type="button" className="flex w-full h-9 items-center justify-between rounded-lg border border-input bg-background px-3 text-sm shadow-sm">
                                     {userForm.status === "ACTIVE" ? "Active" : "Inactive"}

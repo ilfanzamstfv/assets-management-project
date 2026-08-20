@@ -133,3 +133,14 @@
         @apply font-sans;
     }
 }
+
+@layer utilities {
+    .auth-grid-bg {
+        background-color: #f8fafc;
+        background-image:
+            linear-gradient(to right, rgba(48, 56, 65, 0.18) 2px, transparent 1px),
+            linear-gradient(to bottom, rgba(48, 56, 65, 0.18) 2px, transparent 1px);
+        background-size: 2.25rem 2.25rem;
+        /* 84px square cells */
+    }
+}

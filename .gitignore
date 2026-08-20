@@ -28,3 +28,4 @@ dist-ssr
 *.sw?
 /src/assets
 .agents
+CLAUDE.md

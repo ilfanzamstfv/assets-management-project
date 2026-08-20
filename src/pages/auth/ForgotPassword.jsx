@@ -44,9 +44,9 @@ export default function ForgotPassword() {
     }
 
     return (
-        <div className="w-screen h-screen bg-linear-to-r from-slate-900 to-zinc-800">
+        <div className="w-screen h-screen auth-grid-bg">
             <div className="flex justify-center items-center h-screen">
-                <Card className="w-full max-w-sm mx-4">
+                <Card className="w-full max-w-sm mx-4 shadow-lg">
                     <CardHeader className="flex flex-row gap-3">
                         <div className="flex flex-col gap-2">
                             <CardTitle className="text-2xl font-bold">Forgot Password?</CardTitle>

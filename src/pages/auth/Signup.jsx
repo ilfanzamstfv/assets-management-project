@@ -51,9 +51,9 @@ export default function Signup() {
     }
 
     return (
-        <div className="w-screen h-screen bg-linear-to-r from-slate-900 to-zinc-800">
+        <div className="w-screen h-screen auth-grid-bg">
             <div className="flex justify-center items-center h-screen">
-                <Card className="w-full max-w-sm mx-4">
+                <Card className="w-full max-w-sm mx-4 shadow-lg">
                     <CardHeader className="flex flex-row gap-3">
                         <FingerprintPattern className="w-12 h-12 border-2 rounded-md p-1.5 border-black hover:text-gray-500 hover:border-gray-500" />
                         <div className="flex flex-col">
@@ -114,10 +114,8 @@ export default function Signup() {
                     </CardContent>
                     <CardFooter className="flex-col gap-2">
                         <div className="space-y-4">
-                            <div className="flex justify-center text-xs uppercase">
-                                <span className="bg-background px-2 text-muted-foreground">
-                                    Or
-                                </span>
+                            <div className="flex justify-center text-xs uppercase text-muted-foreground">
+                                Or
                             </div>
                         </div>
                         <Button
