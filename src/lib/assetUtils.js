@@ -1,0 +1,103 @@
+import {
+    Boxes,
+    ChartColumn,
+    LayoutDashboard,
+    ShieldCheck,
+    ShoppingCart,
+    Database,
+} from "lucide-react"
+
+export const moduleConfig = [
+    { id: "dashboard", permissionModule: "dashboard", permissionAction: "read", label: "Dashboard", icon: LayoutDashboard, path: "/home/dashboard" },
+    { id: "items", permissionModule: "item", permissionAction: "read", label: "Item Management", icon: Boxes, path: "/home/items" },
+    { id: "stock", permissionModule: "stock", permissionAction: "read", label: "Cek Stock", icon: ChartColumn, path: "/home/stock" },
+    { id: "purchases", permissionModule: "purchase_history", permissionAction: "read", label: "Purchase History", icon: ShoppingCart, path: "/home/purchases" },
+    { id: "users", permissionModule: "user_management", permissionAction: "manage", label: "User & Role", icon: ShieldCheck, path: "/home/users" },
+    { 
+        id: "master-data", 
+        permissionModule: "master-data", 
+        permissionAction: "manage", 
+        label: "Master Data", 
+        icon: Database, 
+        children: [
+            { id: "md-categories", label: "Kategori", path: "/home/master-data/categories" },
+            { id: "md-locations", label: "Lokasi", path: "/home/master-data/locations" },
+            { id: "md-suppliers", label: "Supplier", path: "/home/master-data/suppliers" },
+        ]
+    },
+]
+
+export const emptyItemForm = {
+    name: "",
+    sku: "",
+    categoryId: "",
+    locationId: "",
+    supplierId: "",
+    stock: "",
+    unit: "unit",
+    lastPurchasePrice: "",
+    description: "",
+    status: "ACTIVE",
+}
+
+export const emptyPurchaseForm = {
+    itemId: "",
+    supplierId: "",
+    quantity: "",
+    unitPrice: "",
+    purchaseDate: "",
+    note: "",
+}
+
+export const emptyUserForm = {
+    name: "",
+    email: "",
+    roleId: "",
+    password: "",
+    status: "ACTIVE",
+}
+
+export const pageSize = 5
+
+export function formatCurrency(value) {
+    return new Intl.NumberFormat("id-ID", {
+        style: "currency",
+        currency: "IDR",
+        maximumFractionDigits: 0,
+    }).format(Number(value || 0))
+}
+
+export function formatDate(value) {
+    if (!value) return "-"
+    return new Intl.DateTimeFormat("id-ID", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+    }).format(new Date(value))
+}
+
+export function makeId(prefix) {
+    return `${prefix}-${Math.random().toString(36).slice(2, 8)}`
+}
+
+export function toDisplayStatus(value) {
+    if (value === "ACTIVE") return "Active"
+    if (value === "INACTIVE") return "Inactive"
+    return value || "-"
+}
+
+export function permissionListToMap(role) {
+    const permissions = role?.permissions || []
+    const map = {}
+
+    permissions.forEach((entry) => {
+        const permission = entry.permission || entry
+        const moduleName = permission?.module
+        const actionName = permission?.action
+        if (!moduleName || !actionName) return
+        if (!map[moduleName]) map[moduleName] = {}
+        map[moduleName][actionName] = true
+    })
+
+    return map
+}

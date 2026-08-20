@@ -1,16 +1,6 @@
-import { createContext, useContext, useState, useEffect } from "react"
-import { me } from "@/services/auth"
-
-const AuthContext = createContext(null)
-
-function decodeToken(token) {
-    try {
-        const payload = token.split(".")[1]
-        return JSON.parse(atob(payload))
-    } catch {
-        return null
-    }
-}
+import { useEffect, useState } from "react"
+import { getCurrentUser } from "@/services/auth"
+import AuthContext from "@/context/auth-context"
 
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null)
@@ -19,18 +9,13 @@ export function AuthProvider({ children }) {
     const fetchUser = async () => {
         const token = localStorage.getItem("token")
         if (!token) {
+            setUser(null)
             setLoading(false)
             return
         }
         try {
-            const decoded = decodeToken(token)
-            console.log("JWT decoded:", decoded)
-            if (!decoded) throw new Error("Invalid token")
-            const userId = decoded.id || decoded.userId || decoded.sub
-            console.log("User ID:", userId)
-            const res = await me(userId)
-            console.log("User response:", res.data)
-            setUser(res.data.data || res.data)
+            const res = await getCurrentUser()
+            setUser(res.data?.data || res.data)
         } catch {
             localStorage.removeItem("token")
             setUser(null)
@@ -45,7 +30,11 @@ export function AuthProvider({ children }) {
     }
 
     useEffect(() => {
-        fetchUser()
+        const run = async () => {
+            await fetchUser()
+        }
+
+        run()
     }, [])
 
     return (
@@ -53,12 +42,4 @@ export function AuthProvider({ children }) {
             {children}
         </AuthContext.Provider>
     )
-}
-
-export function useAuth() {
-    const context = useContext(AuthContext)
-    if (!context) {
-        throw new Error("useAuth must be used within an AuthProvider")
-    }
-    return context
 }

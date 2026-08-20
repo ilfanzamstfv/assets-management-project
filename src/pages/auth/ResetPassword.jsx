@@ -52,9 +52,8 @@ export default function ResetPassword() {
         try {
             await resetPassword({
                 email,
-                code,
-                password: form.password,
-                confirmPassword: form.confirmPassword,
+                resetCode: code,
+                newPassword: form.password,
             })
             gooeyToast.success("Reset Password", {
                 description: "Your password has been reset successfully.",

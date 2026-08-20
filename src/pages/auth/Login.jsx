@@ -17,7 +17,7 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 
 import { gooeyToast } from "@/components/ui/goey-toaster"
-import { useAuth } from "@/context/AuthContext"
+import { useAuth } from "@/hooks/useAuth"
 import { FingerprintPattern } from 'lucide-react';
 
 export default function Login() {

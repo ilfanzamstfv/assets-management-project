@@ -36,11 +36,9 @@ export default function Signup() {
         setLoading(true)
         setError("")
         try {
-            const res = await register(form)
-            const token = res.data.token || res.data.data?.token
-            localStorage.setItem("token", token)
+            await register(form)
             gooeyToast.success('Signup', {
-                description: 'Account created successfully.',
+                description: 'Account created successfully. Please log in.',
                 preset: 'smooth',
                 showProgress: true,
             })
