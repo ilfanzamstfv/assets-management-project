@@ -67,9 +67,12 @@ export default function UsersPage() {
     }
 
     const onSubmit = async (e) => {
-        await handleUserSubmit(e)
-        // Close dialog after submit
-        setIsDialogOpen(false)
+        try {
+            await handleUserSubmit(e)
+            setIsDialogOpen(false)
+        } catch {
+            // Error sudah ditampilkan oleh toast di AssetContext.
+        }
     }
 
     const currentUsers = useMemo(() => {

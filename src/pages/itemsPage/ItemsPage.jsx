@@ -1,16 +1,27 @@
-import { Archive, Check, Download } from "lucide-react"
-import { useNavigate } from "react-router-dom"
+import { CircleX, Eye, Plus, ChevronDown, Pencil, CircleCheck, ChevronLeft, ChevronRight } from "lucide-react"
+import { useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table"
 import ModuleGuard from "@/components/asset/ModuleGuard"
 import { DataPill, SectionHeader } from "@/components/asset/AssetUI"
 import { useAsset } from "@/hooks/useAsset"
-import { formatCurrency } from "@/lib/assetUtils"
+import ItemDetailDialog from "./ItemDetailDialog"
+import ItemFormDialog from "./ItemFormDialog"
 
 export default function ItemsPage() {
-    const navigate = useNavigate()
+    const [isFormOpen, setIsFormOpen] = useState(false)
+    const [isDetailOpen, setIsDetailOpen] = useState(false)
     const {
         categories,
         locations,
@@ -25,13 +36,10 @@ export default function ItemsPage() {
         totalItemPages,
         paginatedItems,
         filteredItems,
-        masterForm,
         setSelectedItemId,
-        setItemForm,
         setItemSearch,
         setItemFilters,
         setItemPage,
-        setMasterForm,
         getCategoryName,
         getLocationName,
         getSupplierName,
@@ -39,34 +47,57 @@ export default function ItemsPage() {
         handleItemSubmit,
         handleEditItem,
         handleArchiveItem,
-        handleAddMasterData,
-        handleRemoveMasterData,
         handleExportItem,
         loading,
         errors,
+        setItemForm,
     } = useAsset()
 
     const canManageItems = modulePermissions.items?.create || modulePermissions.items?.update
+    const selectedCategoryName = itemFilters.categoryId === "all"
+        ? "All Category"
+        : categories.find((category) => String(category.id) === String(itemFilters.categoryId))?.name || "All Category"
+    const selectedLocationName = itemFilters.locationId === "all"
+        ? "All Location"
+        : locations.find((location) => String(location.id) === String(itemFilters.locationId))?.name || "All Location"
+    const selectedStatusName = itemFilters.status === "ACTIVE"
+        ? "Active"
+        : itemFilters.status === "INACTIVE" ? "Inactive" : "Status"
+
+    const openAddDialog = () => {
+        resetItemForm()
+        setIsFormOpen(true)
+    }
+
+    const openEditDialog = (item) => {
+        handleEditItem(item)
+        setIsFormOpen(true)
+    }
+
+    const openDetailDialog = (item) => {
+        setSelectedItemId(item.id)
+        setIsDetailOpen(true)
+    }
+
+    const onSubmit = async (event) => {
+        try {
+            await handleItemSubmit(event)
+            setIsFormOpen(false)
+        } catch {
+            // Error sudah ditampilkan oleh toast di AssetContext.
+        }
+    }
 
     return (
         <ModuleGuard moduleId="items">
             <SectionHeader
                 title="Item Management"
-                action={
-                    <div className="flex gap-2">
-                        {selectedItem && modulePermissions.items?.export && (
-                            <Button type="button" onClick={() => handleExportItem(selectedItem)}>
-                                <Download className="size-4" />
-                                Export PDF
-                            </Button>
-                        )}
-                        {editingItemId && (
-                            <Button type="button" variant="outline" onClick={resetItemForm}>
-                                Reset Form
-                            </Button>
-                        )}
-                    </div>
-                }
+                action={canManageItems ? (
+                    <Button type="button" onClick={openAddDialog}>
+                        <Plus className="size-4" />
+                        Add Item
+                    </Button>
+                ) : null}
             />
 
             {(errors.items || errors.masterData || errors.itemDetail) && (
@@ -77,269 +108,156 @@ export default function ItemsPage() {
                 </Card>
             )}
 
-            <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-                <Card className="border-white/60 bg-white/85 shadow-sm">
-                    <CardHeader>
-                        <CardTitle>Daftar Item</CardTitle>
-                        <CardDescription>Pencarian, filter, pagination, dan aksi cepat item.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-                            <div className="xl:col-span-2">
-                                <Input
-                                    value={itemSearch}
-                                    onChange={(event) => {
-                                        setItemSearch(event.target.value)
-                                        setItemPage(1)
-                                    }}
-                                    placeholder="Cari nama item atau SKU"
-                                />
-                            </div>
-                            <select
-                                value={itemFilters.categoryId}
-                                onChange={(event) => {
-                                    setItemFilters((current) => ({ ...current, categoryId: event.target.value }))
-                                    setItemPage(1)
-                                }}
-                                className="h-8 rounded-lg border border-input bg-white px-2.5 text-sm"
-                            >
-                                <option value="all">Semua kategori</option>
+            <Card className="border-white/60 bg-white/85 shadow-sm">
+                <CardHeader>
+                    <CardTitle>List Items</CardTitle>
+                    <CardDescription>All items managed within the system.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                        <Input
+                            value={itemSearch}
+                            onChange={(event) => {
+                                setItemSearch(event.target.value)
+                                setItemPage(1)
+                            }}
+                            placeholder="Search by item name"
+                        />
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <button type="button" className="flex h-8 w-full items-center justify-between rounded-lg border border-input bg-white px-2.5 text-sm">
+                                    {selectedCategoryName}
+                                    <ChevronDown className="h-4 w-4 opacity-50" />
+                                </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent style={{ width: "var(--radix-dropdown-menu-trigger-width)" }}>
+                                <DropdownMenuItem onClick={() => { setItemFilters((current) => ({ ...current, categoryId: "all" })); setItemPage(1) }}>
+                                    Semua kategori
+                                </DropdownMenuItem>
                                 {categories.map((category) => (
-                                    <option key={category.id} value={category.id}>{category.name}</option>
+                                    <DropdownMenuItem key={category.id} onClick={() => { setItemFilters((current) => ({ ...current, categoryId: category.id })); setItemPage(1) }}>
+                                        {category.name}
+                                    </DropdownMenuItem>
                                 ))}
-                            </select>
-                            <select
-                                value={itemFilters.locationId}
-                                onChange={(event) => {
-                                    setItemFilters((current) => ({ ...current, locationId: event.target.value }))
-                                    setItemPage(1)
-                                }}
-                                className="h-8 rounded-lg border border-input bg-white px-2.5 text-sm"
-                            >
-                                <option value="all">Semua lokasi</option>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <button type="button" className="flex h-8 w-full items-center justify-between rounded-lg border border-input bg-white px-2.5 text-sm">
+                                    {selectedLocationName}
+                                    <ChevronDown className="h-4 w-4 opacity-50" />
+                                </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent style={{ width: "var(--radix-dropdown-menu-trigger-width)" }}>
+                                <DropdownMenuItem onClick={() => { setItemFilters((current) => ({ ...current, locationId: "all" })); setItemPage(1) }}>
+                                    Semua lokasi
+                                </DropdownMenuItem>
                                 {locations.map((location) => (
-                                    <option key={location.id} value={location.id}>{location.name}</option>
+                                    <DropdownMenuItem key={location.id} onClick={() => { setItemFilters((current) => ({ ...current, locationId: location.id })); setItemPage(1) }}>
+                                        {location.name}
+                                    </DropdownMenuItem>
                                 ))}
-                            </select>
-                            <select
-                                value={itemFilters.status}
-                                onChange={(event) => {
-                                    setItemFilters((current) => ({ ...current, status: event.target.value }))
-                                    setItemPage(1)
-                                }}
-                                className="h-8 rounded-lg border border-input bg-white px-2.5 text-sm"
-                            >
-                                <option value="all">Semua status</option>
-                                <option value="ACTIVE">Active</option>
-                                <option value="INACTIVE">Inactive</option>
-                            </select>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <button type="button" className="flex h-8 w-full items-center justify-between rounded-lg border border-input bg-white px-2.5 text-sm">
+                                    {selectedStatusName}
+                                    <ChevronDown className="h-4 w-4 opacity-50" />
+                                </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent style={{ width: "var(--radix-dropdown-menu-trigger-width)" }}>
+                                <DropdownMenuItem onClick={() => { setItemFilters((current) => ({ ...current, status: "all" })); setItemPage(1) }}>Semua status</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => { setItemFilters((current) => ({ ...current, status: "ACTIVE" })); setItemPage(1) }}>Active</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => { setItemFilters((current) => ({ ...current, status: "INACTIVE" })); setItemPage(1) }}>Inactive</DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+
+                    <div className="overflow-x-auto rounded-xl border border-slate-200">
+                        <Table>
+                            <TableHeader className="bg-slate-50/50">
+                                <TableRow>
+                                    <TableHead>Item</TableHead>
+                                    <TableHead>Category</TableHead>
+                                    <TableHead>Location</TableHead>
+                                    <TableHead>Stock</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead>Action</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {!paginatedItems.length && !loading.items ? (
+                                    <TableRow>
+                                        <TableCell colSpan={6} className="h-24 text-center text-slate-500">Tidak ada item yang cocok dengan filter saat ini.</TableCell>
+                                    </TableRow>
+                                ) : paginatedItems.map((item) => (
+                                    <TableRow key={item.id} className={selectedItem?.id === item.id ? "bg-slate-50" : ""}>
+                                        <TableCell>
+                                            <button type="button" className="text-left" onClick={() => openDetailDialog(item)}>
+                                                <p className="font-medium text-slate-900">{item.name}</p>
+                                                <p className="text-xs text-slate-500">{item.sku}</p>
+                                            </button>
+                                        </TableCell>
+                                        <TableCell>{getCategoryName(item.categoryId)}</TableCell>
+                                        <TableCell>{getLocationName(item.locationId)}</TableCell>
+                                        <TableCell>{item.stock} {item.unit}</TableCell>
+                                        <TableCell><DataPill>{item.status}</DataPill></TableCell>
+                                        <TableCell>
+                                            <div className="flex flex-wrap gap-2">
+                                                <Button type="button" size="icon" variant="outline" onClick={() => openDetailDialog(item)}>
+                                                    <Eye className="size-4" />
+                                                </Button>
+                                                {modulePermissions.items?.update && (
+                                                    <Button type="button" size="icon" variant="outline" onClick={() => openEditDialog(item)}>
+                                                        <Pencil className="size-4" />
+                                                    </Button>
+                                                )}
+                                                {modulePermissions.items?.delete && (
+                                                    <Button type="button" size="icon" variant="outline" onClick={() => handleArchiveItem(item.id)}>
+                                                        {item.status === "ACTIVE" ? <CircleCheck className="size-4" /> : <CircleX className="size-4" />}
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                        <p className="text-sm text-slate-500">Showing {paginatedItems.length} of {filteredItems.length} items</p>
+                        <div className="flex items-center gap-2">
+                            <Button type="button" variant="outline" size="icon" disabled={visibleItemPage === 1} onClick={() => setItemPage((current) => Math.max(1, current - 1))}><ChevronLeft className="size-4" /></Button>
+                            <span className="text-sm text-slate-600">{visibleItemPage} / {totalItemPages}</span>
+                            <Button type="button" variant="outline" size="icon" disabled={visibleItemPage === totalItemPages} onClick={() => setItemPage((current) => Math.min(totalItemPages, current + 1))}><ChevronRight className="size-4" /></Button>
                         </div>
+                    </div>
+                </CardContent>
+            </Card>
 
-                        <div className="overflow-hidden rounded-xl border border-slate-200">
-                            <table className="min-w-full text-sm">
-                                <thead className="bg-slate-50 text-left text-slate-500">
-                                    <tr>
-                                        <th className="px-4 py-3 font-medium">Item</th>
-                                        <th className="px-4 py-3 font-medium">Kategori</th>
-                                        <th className="px-4 py-3 font-medium">Lokasi</th>
-                                        <th className="px-4 py-3 font-medium">Stok</th>
-                                        <th className="px-4 py-3 font-medium">Status</th>
-                                        <th className="px-4 py-3 font-medium">Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white">
-                                    {!paginatedItems.length && !loading.items && (
-                                        <tr>
-                                            <td className="px-4 py-6 text-slate-500" colSpan={6}>Tidak ada item yang cocok dengan filter saat ini.</td>
-                                        </tr>
-                                    )}
-                                    {paginatedItems.map((item) => (
-                                        <tr
-                                            key={item.id}
-                                            className={`${selectedItem?.id === item.id ? "bg-slate-50" : ""} border-t border-slate-100`}
-                                        >
-                                            <td className="px-4 py-3">
-                                                <button
-                                                    type="button"
-                                                    className="text-left"
-                                                    onClick={() => setSelectedItemId(item.id)}
-                                                >
-                                                    <p className="font-medium text-slate-900">{item.name}</p>
-                                                    <p className="text-xs text-slate-500">{item.sku}</p>
-                                                </button>
-                                            </td>
-                                            <td className="px-4 py-3">{getCategoryName(item.categoryId)}</td>
-                                            <td className="px-4 py-3">{getLocationName(item.locationId)}</td>
-                                            <td className="px-4 py-3">{item.stock} {item.unit}</td>
-                                            <td className="px-4 py-3">
-                                                <DataPill>{item.status}</DataPill>
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <div className="flex flex-wrap gap-2">
-                                                    {modulePermissions.items?.update && (
-                                                        <Button
-                                                            type="button"
-                                                            size="sm"
-                                                            variant="outline"
-                                                            onClick={() => {
-                                                                handleEditItem(item)
-                                                                navigate("/home/items")
-                                                            }}
-                                                        >
-                                                            Edit
-                                                        </Button>
-                                                    )}
-                                                    {modulePermissions.items?.delete && (
-                                                        <Button type="button" size="sm" variant="outline" onClick={() => handleArchiveItem(item.id)}>
-                                                            <Archive className="size-3.5" />
-                                                            {item.status === "ACTIVE" ? "Archive" : "Activate"}
-                                                        </Button>
-                                                    )}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                            <p className="text-sm text-slate-500">
-                                Menampilkan {paginatedItems.length} dari {filteredItems.length} item
-                            </p>
-                            <div className="flex items-center gap-2">
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    disabled={visibleItemPage === 1}
-                                    onClick={() => setItemPage((current) => Math.max(1, current - 1))}
-                                >
-                                    Prev
-                                </Button>
-                                <span className="text-sm text-slate-600">
-                                    {visibleItemPage} / {totalItemPages}
-                                </span>
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    disabled={visibleItemPage === totalItemPages}
-                                    onClick={() => setItemPage((current) => Math.min(totalItemPages, current + 1))}
-                                >
-                                    Next
-                                </Button>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <div className="space-y-6">
-                    <Card className="border-white/60 bg-white/85 shadow-sm">
-                        <CardHeader>
-                            <CardTitle>{editingItemId ? "Edit Item" : "Tambah Item"}</CardTitle>
-                            <CardDescription>Form frontend untuk create dan update data master item.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            {canManageItems ? (
-                                <form className="space-y-3" onSubmit={handleItemSubmit}>
-                                    <Input value={itemForm.name} onChange={(event) => setItemForm((current) => ({ ...current, name: event.target.value }))} placeholder="Nama item" />
-                                    <Input value={itemForm.sku} onChange={(event) => setItemForm((current) => ({ ...current, sku: event.target.value }))} placeholder="Kode / SKU item" />
-                                    <div className="grid gap-3 md:grid-cols-2">
-                                        <select value={itemForm.categoryId} onChange={(event) => setItemForm((current) => ({ ...current, categoryId: event.target.value }))} className="h-8 rounded-lg border border-input bg-white px-2.5 text-sm">
-                                            <option value="">Pilih kategori</option>
-                                            {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
-                                        </select>
-                                        <select value={itemForm.locationId} onChange={(event) => setItemForm((current) => ({ ...current, locationId: event.target.value }))} className="h-8 rounded-lg border border-input bg-white px-2.5 text-sm">
-                                            <option value="">Pilih lokasi</option>
-                                            {locations.map((location) => <option key={location.id} value={location.id}>{location.name}</option>)}
-                                        </select>
-                                    </div>
-                                    <div className="grid gap-3 md:grid-cols-2">
-                                        <select value={itemForm.supplierId} onChange={(event) => setItemForm((current) => ({ ...current, supplierId: event.target.value }))} className="h-8 rounded-lg border border-input bg-white px-2.5 text-sm">
-                                            <option value="">Pilih supplier</option>
-                                            {suppliers.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}
-                                        </select>
-                                        <select value={itemForm.status} onChange={(event) => setItemForm((current) => ({ ...current, status: event.target.value }))} className="h-8 rounded-lg border border-input bg-white px-2.5 text-sm">
-                                            <option value="ACTIVE">Active</option>
-                                            <option value="INACTIVE">Inactive</option>
-                                        </select>
-                                    </div>
-                                    <div className="grid gap-3 md:grid-cols-3">
-                                        <Input type="number" min="0" value={itemForm.stock} onChange={(event) => setItemForm((current) => ({ ...current, stock: event.target.value }))} placeholder="Jumlah stok" />
-                                        <Input value={itemForm.unit} onChange={(event) => setItemForm((current) => ({ ...current, unit: event.target.value }))} placeholder="Satuan" />
-                                        <Input type="number" min="0" value={itemForm.lastPurchasePrice} onChange={(event) => setItemForm((current) => ({ ...current, lastPurchasePrice: event.target.value }))} placeholder="Harga beli terakhir" />
-                                    </div>
-                                    <textarea
-                                        value={itemForm.description}
-                                        onChange={(event) => setItemForm((current) => ({ ...current, description: event.target.value }))}
-                                        placeholder="Deskripsi item"
-                                        className="min-h-24 w-full rounded-lg border border-input bg-white px-3 py-2 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-                                    />
-                                    <Button type="submit" className="w-full" disabled={loading.saveItem}>
-                                        <Check className="size-4" />
-                                        {loading.saveItem ? "Menyimpan..." : editingItemId ? "Simpan Perubahan" : "Tambah Item"}
-                                    </Button>
-                                </form>
-                            ) : (
-                                <p className="text-sm text-slate-500">Role ini hanya bisa melihat data item.</p>
-                            )}
-                        </CardContent>
-                    </Card>
-
-                    <Card className="border-white/60 bg-white/85 shadow-sm">
-                        <CardHeader>
-                            <CardTitle>Detail Item</CardTitle>
-                            <CardDescription>Panel detail item terpilih sekaligus titik export PDF.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
-                            {selectedItem ? (
-                                <>
-                                    <div className="flex flex-wrap gap-2">
-                                        <DataPill>{selectedItem.sku}</DataPill>
-                                        <DataPill>{getCategoryName(selectedItem.categoryId)}</DataPill>
-                                        <DataPill>{selectedItem.status}</DataPill>
-                                    </div>
-                                    <div>
-                                        <p className="text-lg font-semibold text-slate-900">{selectedItem.name}</p>
-                                        <p className="text-sm text-slate-600">{selectedItem.description || "Belum ada deskripsi item."}</p>
-                                    </div>
-                                    <div className="grid gap-3 md:grid-cols-2">
-                                        <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-                                            <p className="text-xs uppercase tracking-[0.16em] text-slate-500">Lokasi</p>
-                                            <p className="mt-1 font-medium">{getLocationName(selectedItem.locationId)}</p>
-                                        </div>
-                                        <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-                                            <p className="text-xs uppercase tracking-[0.16em] text-slate-500">Supplier</p>
-                                            <p className="mt-1 font-medium">{getSupplierName(selectedItem.supplierId)}</p>
-                                        </div>
-                                        <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-                                            <p className="text-xs uppercase tracking-[0.16em] text-slate-500">Stok</p>
-                                            <p className="mt-1 font-medium">{selectedItem.stock} {selectedItem.unit}</p>
-                                        </div>
-                                        <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-                                            <p className="text-xs uppercase tracking-[0.16em] text-slate-500">Harga Terakhir</p>
-                                            <p className="mt-1 font-medium">{formatCurrency(selectedItem.lastPurchasePrice || 0)}</p>
-                                        </div>
-                                    </div>
-                                    {selectedItem.purchaseHistories?.length > 0 && (
-                                        <div className="space-y-2">
-                                            <p className="text-sm font-medium text-slate-900">Riwayat Pembelian</p>
-                                            {selectedItem.purchaseHistories.slice(0, 5).map((purchase) => (
-                                                <div key={purchase.id} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
-                                                    {purchase.supplierName || getSupplierName(purchase.supplierId)} / {purchase.quantity} unit / {formatCurrency(purchase.unitPrice)} / {purchase.purchaseDate?.slice(0, 10)}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </>
-                            ) : (
-                                <p className="text-sm text-slate-500">Pilih item dari daftar untuk melihat detailnya.</p>
-                            )}
-                        </CardContent>
-                    </Card>
-                </div>
-            </div>
-
-
+            <ItemFormDialog
+                isOpen={isFormOpen}
+                setIsOpen={setIsFormOpen}
+                editingItemId={editingItemId}
+                itemForm={itemForm}
+                setItemForm={setItemForm}
+                categories={categories}
+                locations={locations}
+                suppliers={suppliers}
+                loading={loading}
+                onSubmit={onSubmit}
+            />
+            <ItemDetailDialog
+                item={isDetailOpen ? selectedItem : null}
+                onOpenChange={setIsDetailOpen}
+                getCategoryName={getCategoryName}
+                getLocationName={getLocationName}
+                getSupplierName={getSupplierName}
+                handleExportItem={handleExportItem}
+                canExport={modulePermissions.items?.export}
+            />
         </ModuleGuard>
     )
 }

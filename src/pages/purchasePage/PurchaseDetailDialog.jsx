@@ -22,7 +22,7 @@ export default function PurchaseDetailDialog({ purchase, onOpenChange }) {
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
                     <DialogTitle>Detail Purchase</DialogTitle>
-                    <DialogDescription>Info lengkap riwayat pembelian.</DialogDescription>
+                    <DialogDescription>Complete purchase history details</DialogDescription>
                 </DialogHeader>
                 {purchase ? (
                     <div className="space-y-3">

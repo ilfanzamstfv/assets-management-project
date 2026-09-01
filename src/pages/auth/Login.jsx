@@ -60,7 +60,7 @@ export default function Login() {
           <CardHeader className="flex flex-row gap-3">
             <FingerprintPattern className="w-12 h-12 border-2 rounded-md p-1.5 border-black hover:text-gray-500 hover:border-gray-500" />
             <div className="flex flex-col">
-              <CardTitle className="text-2xl font-bold">Login to your account</CardTitle>
+              <CardTitle className="text-2xl font-bold">Authora</CardTitle>
               <CardDescription className="text-sm">Don't have an account? <Link to="/signup" className="underline hover:text-black font-medium">Sign up</Link></CardDescription>
             </div>
           </CardHeader>

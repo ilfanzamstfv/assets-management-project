@@ -390,6 +390,10 @@ export function AssetProvider({ children }) {
             const message = error.response?.data?.message || "Failed to load user management data"
             setErrorFor("users", message)
             setErrorFor("roles", message)
+            gooeyToast.error("Load failed", {
+                description: message,
+                preset: "smooth",
+            })
         } finally {
             updateLoading("users", false)
             updateLoading("roles", false)
@@ -584,6 +588,7 @@ export function AssetProvider({ children }) {
                 description: error.response?.data?.message || "Failed to save user",
                 preset: "smooth",
             })
+            throw error
         } finally {
             updateLoading("saveUser", false)
         }
