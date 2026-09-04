@@ -475,9 +475,12 @@ export function AssetProvider({ children }) {
 
     const handleArchiveItem = async (itemId) => {
         try {
-            await archiveItem(itemId)
-            gooeyToast.success("Item archived", {
-                description: "Status item berhasil diubah menjadi inactive.",
+            const updated = await archiveItem(itemId)
+            const activated = updated?.status === "ACTIVE"
+            gooeyToast.success(activated ? "Item activated" : "Item archived", {
+                description: activated
+                    ? "Status item berhasil diubah menjadi active."
+                    : "Status item berhasil diubah menjadi inactive.",
                 preset: "smooth",
             })
             await Promise.all([fetchItems(), fetchStock(), fetchDashboard()])

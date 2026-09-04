@@ -1,6 +1,16 @@
 import { CircleX, Eye, Plus, ChevronDown, Pencil, CircleCheck, ChevronLeft, ChevronRight } from "lucide-react"
 import { useState } from "react"
 
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -22,6 +32,7 @@ import ItemFormDialog from "./ItemFormDialog"
 export default function ItemsPage() {
     const [isFormOpen, setIsFormOpen] = useState(false)
     const [isDetailOpen, setIsDetailOpen] = useState(false)
+    const [archiveTarget, setArchiveTarget] = useState(null)
     const {
         categories,
         locations,
@@ -214,8 +225,8 @@ export default function ItemsPage() {
                                                     </Button>
                                                 )}
                                                 {modulePermissions.items?.delete && (
-                                                    <Button type="button" size="icon" variant="outline" onClick={() => handleArchiveItem(item.id)}>
-                                                        {item.status === "ACTIVE" ? <CircleCheck className="size-4" /> : <CircleX className="size-4" />}
+                                                    <Button type="button" size="icon" variant="outline" onClick={() => setArchiveTarget(item)}>
+                                                        {item.status === "ACTIVE" ? <CircleX className="size-4" /> : <CircleCheck className="size-4" />}
                                                     </Button>
                                                 )}
                                             </div>
@@ -258,6 +269,32 @@ export default function ItemsPage() {
                 handleExportItem={handleExportItem}
                 canExport={modulePermissions.items?.export}
             />
+
+            <AlertDialog open={Boolean(archiveTarget)} onOpenChange={(open) => { if (!open) setArchiveTarget(null) }}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>{archiveTarget?.status === "ACTIVE" ? "Archive Item" : "Activate Item"}</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {archiveTarget?.status === "ACTIVE"
+                                ? `Apakah Anda yakin ingin mengarsipkan item "${archiveTarget?.name}"? Item ini akan dinonaktifkan.`
+                                : `Apakah Anda yakin ingin mengaktifkan kembali item "${archiveTarget?.name}"?`}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setArchiveTarget(null)}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={() => {
+                                if (archiveTarget) {
+                                    handleArchiveItem(archiveTarget.id)
+                                    setArchiveTarget(null)
+                                }
+                            }}
+                        >
+                            {archiveTarget?.status === "ACTIVE" ? "Archive" : "Activate"}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </ModuleGuard>
     )
 }

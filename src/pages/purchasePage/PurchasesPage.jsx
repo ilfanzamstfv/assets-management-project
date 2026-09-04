@@ -223,18 +223,16 @@ export default function PurchasesPage() {
                                                 <TableCell>
                                                     <div className="flex items-center justify-center gap-1">
                                                         <Button
-                                                            variant="ghost"
+                                                            variant="outline"
                                                             size="icon"
-                                                            className="h-8 w-8 text-slate-500 hover:text-blue-600"
                                                             onClick={() => setSelectedPurchase(purchase)}
                                                         >
                                                             <Eye className="size-4" />
                                                         </Button>
                                                         {modulePermissions.purchases?.update && (
                                                             <Button
-                                                                variant="ghost"
+                                                                variant="outline"
                                                                 size="icon"
-                                                                className="h-8 w-8 text-slate-500 hover:text-blue-600"
                                                                 onClick={() => onEditClick(purchase)}
                                                             >
                                                                 <Pencil className="size-4" />
@@ -242,9 +240,8 @@ export default function PurchasesPage() {
                                                         )}
                                                         {modulePermissions.purchases?.delete && (
                                                             <Button
-                                                                variant="ghost"
+                                                                variant="outline"
                                                                 size="icon"
-                                                                className="h-8 w-8 text-slate-500 hover:text-red-600"
                                                                 onClick={() => setPurchaseToDelete(purchase.id)}
                                                             >
                                                                 <Trash2 className="size-4" />

@@ -67,6 +67,48 @@ export function formatCurrency(value) {
     }).format(Number(value || 0))
 }
 
+export function formatCompactCurrency(value) {
+    return new Intl.NumberFormat("id-ID", {
+        style: "currency",
+        currency: "IDR",
+        notation: "compact",
+        maximumFractionDigits: 1,
+    }).format(Number(value || 0))
+}
+
+export function buildPurchaseTrend(purchases, days = 30) {
+    const labelFormat = new Intl.DateTimeFormat("id-ID", {
+        day: "2-digit",
+        month: "short",
+    })
+    const dayMs = 24 * 60 * 60 * 1000
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const start = today.getTime() - (days - 1) * dayMs
+
+    const buckets = new Map()
+    for (let i = 0; i < days; i += 1) {
+        const time = start + i * dayMs
+        buckets.set(time, {
+            date: labelFormat.format(new Date(time)),
+            value: 0,
+            qty: 0,
+        })
+    }
+
+    ;(purchases || []).forEach((purchase) => {
+        if (!purchase?.purchaseDate) return
+        const time = new Date(purchase.purchaseDate).setHours(0, 0, 0, 0)
+        const bucket = buckets.get(time)
+        if (!bucket) return
+        const quantity = Number(purchase.quantity || 0)
+        bucket.qty += quantity
+        bucket.value += quantity * Number(purchase.unitPrice || 0)
+    })
+
+    return Array.from(buckets.values())
+}
+
 export function formatDate(value) {
     if (!value) return "-"
     return new Intl.DateTimeFormat("id-ID", {

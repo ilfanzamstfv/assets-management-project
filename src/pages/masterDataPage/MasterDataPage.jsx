@@ -125,17 +125,15 @@ export default function MasterDataPage({ type }) {
                                                 <TableCell>
                                                     <div className="flex items-center justify-center gap-1">
                                                         <Button
-                                                            variant="ghost"
+                                                            variant="outline"
                                                             size="icon"
-                                                            className="h-8 w-8 text-slate-500 hover:text-blue-600"
                                                             onClick={() => handleOpenEdit(item.id, item.name)}
                                                         >
                                                             <Pencil className="size-4" />
                                                         </Button>
                                                         <Button
-                                                            variant="ghost"
+                                                            variant="outline"
                                                             size="icon"
-                                                            className="h-8 w-8 text-slate-500 hover:text-red-600"
                                                             onClick={() => setDeleteId(item.id)}
                                                         >
                                                             <Trash2 className="size-4" />

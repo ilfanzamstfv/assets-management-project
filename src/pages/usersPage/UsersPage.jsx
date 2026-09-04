@@ -2,7 +2,7 @@ import { useState, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Plus } from "lucide-react"
+import { Pencil, Plus } from "lucide-react"
 import ModuleGuard from "@/components/asset/ModuleGuard"
 import { DataPill, SectionHeader } from "@/components/asset/AssetUI"
 import { Badge } from "@/components/ui/badge"
@@ -126,7 +126,7 @@ export default function UsersPage() {
                                         <TableHead>User</TableHead>
                                         <TableHead>Role</TableHead>
                                         <TableHead>Status</TableHead>
-                                        <TableHead className="text-right">Action</TableHead>
+                                        <TableHead>Action</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -156,9 +156,9 @@ export default function UsersPage() {
                                                 <TableCell>
                                                     <Badge variant={entry.status.toLowerCase() === "active" ? "active" : "inactive"}>{entry.status}</Badge>
                                                 </TableCell>
-                                                <TableCell className="text-right">
-                                                    <Button type="button" size="sm" variant="outline" onClick={() => onEditClick(entry)}>
-                                                        Edit
+                                                <TableCell>
+                                                    <Button type="button" size="icon" variant="outline" onClick={() => onEditClick(entry)}>
+                                                        <Pencil className="size-4" />
                                                     </Button>
                                                 </TableCell>
                                             </TableRow>
