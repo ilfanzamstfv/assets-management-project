@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom"
 import { FingerprintPattern, LogOut, ChevronDown, Search } from "lucide-react"
 
+import CommandPalette from "@/components/asset/CommandPalette"
 import { Input } from "@/components/ui/input"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -32,7 +33,7 @@ export default function AssetLayout() {
     const isDashboard = location.pathname === "/home"
     const [logoutDialogOpen, setLogoutDialogOpen] = useState(false)
     const [isScrolled, setIsScrolled] = useState(false)
-    const searchInputRef = useRef(null)
+    const [commandOpen, setCommandOpen] = useState(false)
     const [openMenus, setOpenMenus] = useState(() => {
         const initial = {}
         if (location.pathname.includes("master-data")) {
@@ -57,7 +58,7 @@ export default function AssetLayout() {
         const handleKeyDown = (e) => {
             if ((e.ctrlKey || e.metaKey) && e.key === "k") {
                 e.preventDefault()
-                searchInputRef.current?.focus()
+                setCommandOpen((open) => !open)
             }
         }
         window.addEventListener("keydown", handleKeyDown)
@@ -100,12 +101,20 @@ export default function AssetLayout() {
                         <div className="flex justify-between items-center">
                             {/* search bar */}
                             <div className="relative flex-1 max-w-md hidden md:block mx-4">
-                                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+                                <Search className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
                                 <Input
-                                    ref={searchInputRef}
                                     type="search"
+                                    readOnly
+                                    aria-label="Open search"
                                     placeholder="Search"
-                                    className={`transition-all duration-300 h-9 w-full rounded-full bg-slate-100/50 pl-9 pr-14 text-sm focus-visible:bg-white ${isScrolled ? "h-7 pl-7 pr-12 text-sm" : "h-9 pl-9 pr-14 text-sm"}`}
+                                    onClick={() => setCommandOpen(true)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter" || e.key === " ") {
+                                            e.preventDefault()
+                                            setCommandOpen(true)
+                                        }
+                                    }}
+                                    className={`cursor-pointer transition-all duration-300 h-9 w-full rounded-full bg-slate-100/50 pl-9 pr-14 text-sm focus-visible:bg-white ${isScrolled ? "h-7 pl-7 pr-12 text-sm" : "h-9 pl-9 pr-14 text-sm"}`}
                                 />
                                 <div className={`transition-all duration-300 absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-0.5 rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-medium text-slate-500 shadow-sm ${isScrolled ? "px-1 py-0.5 text-xs" : "px-1.5 py-0.5"}`}>
                                     <span>Ctrl</span> <span>K</span>
@@ -178,7 +187,7 @@ export default function AssetLayout() {
                 <div className="mt-6 grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
                     <aside className="sticky top-32 z-40 self-start rounded-2xl border border-white/70 bg-white/75 p-3 shadow-sm backdrop-blur-md">
                         <div className="mb-3 px-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-                            Menu
+                            Menus
                         </div>
                         <div className="grid gap-2">
                             {accessibleModules.map((module) => {
@@ -192,9 +201,8 @@ export default function AssetLayout() {
                                             <button
                                                 type="button"
                                                 onClick={() => toggleMenu(module.id)}
-                                                className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left transition ${
-                                                    isActiveRoute ? "text-slate-900 bg-slate-100/50" : "text-slate-700 bg-white hover:bg-slate-100"
-                                                }`}
+                                                className={`flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left transition ${isActiveRoute ? "text-slate-900 bg-slate-100/50" : "text-slate-700 bg-white hover:bg-slate-100"
+                                                    }`}
                                             >
                                                 <div className="flex items-center gap-3">
                                                     <Icon className="size-4" />
@@ -202,9 +210,8 @@ export default function AssetLayout() {
                                                 </div>
                                                 <ChevronDown className={`size-4 text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
                                             </button>
-                                            <div className={`ml-5 grid gap-1 border-l-2 border-slate-100 pl-2 transition-all duration-300 overflow-hidden ${
-                                                isOpen ? "max-h-[500px] opacity-100 mt-1" : "max-h-0 opacity-0"
-                                            }`}>
+                                            <div className={`ml-5 grid gap-1 border-l-2 border-slate-100 pl-2 transition-all duration-300 overflow-hidden ${isOpen ? "max-h-[500px] opacity-100 mt-1" : "max-h-0 opacity-0"
+                                                }`}>
                                                 {module.children.map((child) => (
                                                     <NavLink
                                                         key={child.id}
@@ -290,6 +297,7 @@ export default function AssetLayout() {
                     </main>
                 </div>
             </div>
+            <CommandPalette open={commandOpen} onOpenChange={setCommandOpen} />
         </div>
     )
 }
