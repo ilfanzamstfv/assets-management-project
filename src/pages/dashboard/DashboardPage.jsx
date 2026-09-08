@@ -136,7 +136,11 @@ export default function DashboardPage() {
                             <div className="relative">
                                 <ChartContainer config={{}} className="mx-auto aspect-square max-h-[250px]">
                                     <PieChart>
-                                        <ChartTooltip content={<ChartTooltipContent hideLabel />} />
+                                        <ChartTooltip
+                                            content={<ChartTooltipContent hideLabel />}
+                                            position={{ cursor: 120 }}
+                                            wrapperStyle={{ zIndex: 40, pointerEvents: "none" }}
+                                        />
                                         <Pie
                                             data={categoryData}
                                             dataKey="value"
