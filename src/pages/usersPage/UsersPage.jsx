@@ -2,11 +2,22 @@ import { useState, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Pencil, Plus } from "lucide-react"
+import { Pencil, Plus, Trash2 } from "lucide-react"
 import ModuleGuard from "@/components/asset/ModuleGuard"
-import { DataPill, SectionHeader } from "@/components/asset/AssetUI"
+import { SectionHeader } from "@/components/asset/AssetUI"
 import { Badge } from "@/components/ui/badge"
 import { useAsset } from "@/hooks/useAsset"
+import { useAuth } from "@/hooks/useAuth"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import UserFormDialog from "./UserFormDialog"
 import {
     Table,
@@ -37,12 +48,16 @@ export default function UsersPage() {
         resetUserForm,
         handleUserSubmit,
         handleEditUser,
+        handleDeleteUser,
         handleTogglePermission,
         loading,
         errors,
     } = useAsset()
 
+    const { user } = useAuth()
+
     const [isDialogOpen, setIsDialogOpen] = useState(false)
+    const [deleteUserId, setDeleteUserId] = useState(null)
     const [currentPage, setCurrentPage] = useState(1)
     const [selectedRole, setSelectedRole] = useState("")
     const itemsPerPage = 10
@@ -73,6 +88,12 @@ export default function UsersPage() {
         } catch {
             // Error sudah ditampilkan oleh toast di AssetContext.
         }
+    }
+
+    const handleConfirmDelete = async () => {
+        if (!deleteUserId) return
+        await handleDeleteUser(deleteUserId)
+        setDeleteUserId(null)
     }
 
     const currentUsers = useMemo(() => {
@@ -157,9 +178,21 @@ export default function UsersPage() {
                                                     <Badge variant={entry.status.toLowerCase() === "active" ? "active" : "inactive"}>{entry.status}</Badge>
                                                 </TableCell>
                                                 <TableCell>
-                                                    <Button type="button" size="icon" variant="outline" onClick={() => onEditClick(entry)}>
-                                                        <Pencil className="size-4" />
-                                                    </Button>
+                                                    <div className="flex items-center gap-1">
+                                                        <Button type="button" size="icon" variant="outline" onClick={() => onEditClick(entry)}>
+                                                            <Pencil className="size-4" />
+                                                        </Button>
+                                                        <Button
+                                                            type="button"
+                                                            size="icon"
+                                                            variant="outline"
+                                                            className="text-red-600"
+                                                            onClick={() => setDeleteUserId(entry.id)}
+                                                            disabled={Number(entry.id) === Number(user?.id)}
+                                                        >
+                                                            <Trash2 className="size-4" />
+                                                        </Button>
+                                                    </div>
                                                 </TableCell>
                                             </TableRow>
                                         ))
@@ -252,6 +285,27 @@ export default function UsersPage() {
                     </CardContent>
                 </Card>
             </div>
+
+            <AlertDialog open={!!deleteUserId} onOpenChange={(open) => !open && setDeleteUserId(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete this user account.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            variant="logout"
+                            className="bg-red-600 hover:bg-red-700 text-white"
+                            onClick={handleConfirmDelete}
+                        >
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </ModuleGuard>
     )
 }

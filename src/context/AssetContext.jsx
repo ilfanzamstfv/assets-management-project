@@ -15,6 +15,7 @@ import {
     deleteLocation,
     deletePurchaseHistory,
     deleteSupplier,
+    deleteUser,
     downloadItemPdf,
     getCategories,
     getDashboardSummary,
@@ -608,6 +609,30 @@ export function AssetProvider({ children }) {
         })
     }
 
+    const handleDeleteUser = async (userId) => {
+        if (!userId) return
+        if (Number(userId) === Number(user?.id)) {
+            gooeyToast.error("Action blocked", {
+                description: "You cannot delete your own account.",
+                preset: "smooth",
+            })
+            return
+        }
+        try {
+            await deleteUser(userId)
+            gooeyToast.success("User deleted", {
+                description: "User berhasil dihapus.",
+                preset: "smooth",
+            })
+            await fetchUsersAndRoles()
+        } catch (error) {
+            gooeyToast.error("Delete failed", {
+                description: error.response?.data?.message || "Failed to delete user",
+                preset: "smooth",
+            })
+        }
+    }
+
     const handleTogglePermission = async (roleName, moduleId, action) => {
         const role = roles.find((entry) => entry.name === roleName)
         if (!role) return
@@ -877,6 +902,7 @@ export function AssetProvider({ children }) {
         handleDeletePurchase,
         handleUserSubmit,
         handleEditUser,
+        handleDeleteUser,
         handleTogglePermission,
         handleAddMasterData,
         handleEditMasterData,

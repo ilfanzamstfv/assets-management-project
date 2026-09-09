@@ -10,18 +10,18 @@ import {
 export const moduleConfig = [
     { id: "dashboard", permissionModule: "dashboard", permissionAction: "read", label: "Dashboard", icon: LayoutDashboard, path: "/home/dashboard" },
     { id: "items", permissionModule: "item", permissionAction: "read", label: "Item Management", icon: Boxes, path: "/home/items" },
-    { id: "stock", permissionModule: "stock", permissionAction: "read", label: "Cek Stock", icon: ChartColumn, path: "/home/stock" },
+    { id: "stock", permissionModule: "stock", permissionAction: "read", label: "Check Stock", icon: ChartColumn, path: "/home/stock" },
     { id: "purchases", permissionModule: "purchase_history", permissionAction: "read", label: "Purchase History", icon: ShoppingCart, path: "/home/purchases" },
     { id: "users", permissionModule: "user_management", permissionAction: "manage", label: "User & Role", icon: ShieldCheck, path: "/home/users" },
-    { 
-        id: "master-data", 
-        permissionModule: "master-data", 
-        permissionAction: "manage", 
-        label: "Master Data", 
-        icon: Database, 
+    {
+        id: "master-data",
+        permissionModule: "master-data",
+        permissionAction: "manage",
+        label: "Master Data",
+        icon: Database,
         children: [
-            { id: "md-categories", label: "Kategori", path: "/home/master-data/categories" },
-            { id: "md-locations", label: "Lokasi", path: "/home/master-data/locations" },
+            { id: "md-categories", label: "Category", path: "/home/master-data/categories" },
+            { id: "md-locations", label: "Location", path: "/home/master-data/locations" },
             { id: "md-suppliers", label: "Supplier", path: "/home/master-data/suppliers" },
         ]
     },
@@ -96,7 +96,7 @@ export function buildPurchaseTrend(purchases, days = 30) {
         })
     }
 
-    ;(purchases || []).forEach((purchase) => {
+    ; (purchases || []).forEach((purchase) => {
         if (!purchase?.purchaseDate) return
         const time = new Date(purchase.purchaseDate).setHours(0, 0, 0, 0)
         const bucket = buckets.get(time)
