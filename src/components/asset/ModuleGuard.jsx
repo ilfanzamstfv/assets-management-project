@@ -2,13 +2,21 @@ import { Navigate, useLocation } from "react-router-dom"
 
 import { useAsset } from "@/hooks/useAsset"
 
-export default function ModuleGuard({ moduleId, children }) {
+const MASTER_TYPE_MAP = {
+    category: "categories",
+    location: "locations",
+    supplier: "suppliers",
+}
+
+export default function ModuleGuard({ moduleId, type, children }) {
     const location = useLocation()
-    const { modulePermissions, accessibleModules, currentRole } = useAsset()
+    const { modulePermissions, accessibleModules } = useAsset()
 
     const hasAccess =
         moduleId === "master-data"
-            ? currentRole?.toLowerCase() === "admin"
+            ? type
+                ? Boolean(modulePermissions[MASTER_TYPE_MAP[type]]?.read)
+                : ["categories", "locations", "suppliers"].some((key) => modulePermissions[key]?.read)
             : moduleId === "users"
             ? Boolean(modulePermissions.users.manage || modulePermissions.users.roleManage)
             : Boolean(modulePermissions[moduleId]?.read)

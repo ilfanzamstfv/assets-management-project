@@ -89,7 +89,7 @@ export default function MasterDataPage({ type }) {
     }
 
     return (
-        <ModuleGuard moduleId="master-data">
+        <ModuleGuard moduleId="master-data" type={type}>
             <div className="space-y-6">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>

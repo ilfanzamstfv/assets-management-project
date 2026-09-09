@@ -8,7 +8,6 @@ import {
     createCategory,
     createItem,
     createLocation,
-    createPurchaseHistory,
     createSupplier,
     createUser,
     deleteCategory,
@@ -152,14 +151,18 @@ export function AssetProvider({ children }) {
         () =>
             moduleConfig.filter((module) => {
                 if (module.id === "master-data") {
-                    return currentRole?.toLowerCase() === "admin"
+                    return Boolean(
+                        modulePermissions.categories.read ||
+                        modulePermissions.locations.read ||
+                        modulePermissions.suppliers.read
+                    )
                 }
                 if (module.id === "users") {
                     return modulePermissions.users.manage || modulePermissions.users.roleManage
                 }
                 return Boolean(currentPermissionMap[module.permissionModule]?.[module.permissionAction])
             }),
-        [currentPermissionMap, modulePermissions.users.manage, modulePermissions.users.roleManage, currentRole]
+        [modulePermissions, currentPermissionMap]
     )
 
     const selectedItem = useMemo(() => {
@@ -440,7 +443,7 @@ export function AssetProvider({ children }) {
             gooeyToast.success("Item created", { description: "Item baru berhasil ditambahkan.", preset: "smooth" })
         }
         resetItemForm()
-        await Promise.all([fetchItems(), fetchStock(), fetchDashboard()])
+        await Promise.all([fetchItems(), fetchStock(), fetchDashboard(), fetchPurchases()])
     }
 
     const handleItemSubmit = async (event) => {
@@ -507,6 +510,7 @@ export function AssetProvider({ children }) {
 
     const handlePurchaseSubmit = async (event) => {
         event.preventDefault()
+        if (!editingPurchaseId) return
         updateLoading("savePurchase", true)
         try {
             const payload = {
@@ -517,19 +521,11 @@ export function AssetProvider({ children }) {
                 purchaseDate: purchaseForm.purchaseDate,
                 note: purchaseForm.note,
             }
-            if (editingPurchaseId) {
-                await updatePurchaseHistory(editingPurchaseId, payload)
-                gooeyToast.success("Purchase updated", {
-                    description: "Riwayat pembelian berhasil diubah.",
-                    preset: "smooth",
-                })
-            } else {
-                await createPurchaseHistory(payload)
-                gooeyToast.success("Purchase saved", {
-                    description: "Purchase history berhasil ditambahkan.",
-                    preset: "smooth",
-                })
-            }
+            await updatePurchaseHistory(editingPurchaseId, payload)
+            gooeyToast.success("Purchase updated", {
+                description: "Riwayat pembelian berhasil diubah.",
+                preset: "smooth",
+            })
             resetPurchaseForm()
             await Promise.all([fetchPurchases(), fetchItems(), fetchStock(), fetchDashboard()])
             if (selectedItemId) {

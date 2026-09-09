@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { ChevronDown, Calendar as CalendarIcon, Eye, Pencil, Plus, Trash2 } from "lucide-react"
+import { ChevronDown, Calendar as CalendarIcon, Eye, Pencil, Trash2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -49,7 +49,6 @@ export default function PurchasesPage() {
         setPurchaseFilters,
         getItemName,
         getSupplierName,
-        resetPurchaseForm,
         handlePurchaseSubmit,
         handleEditPurchase,
         handleDeletePurchase,
@@ -61,8 +60,6 @@ export default function PurchasesPage() {
     const [selectedPurchase, setSelectedPurchase] = useState(null)
     const [purchaseToDelete, setPurchaseToDelete] = useState(null)
 
-    const canAddPurchase = modulePermissions.purchases?.create
-
     const selectedItemFilterName =
         purchaseFilters.itemId === "all"
             ? "All item"
@@ -72,11 +69,6 @@ export default function PurchasesPage() {
         purchaseFilters.supplierId === "all"
             ? "All supplier"
             : suppliers.find((supplier) => String(supplier.id) === String(purchaseFilters.supplierId))?.name || "Pilih supplier"
-
-    const onAddClick = () => {
-        resetPurchaseForm()
-        setIsFormOpen(true)
-    }
 
     const onEditClick = (purchase) => {
         handleEditPurchase(purchase)
@@ -96,17 +88,7 @@ export default function PurchasesPage() {
 
     return (
         <ModuleGuard moduleId="purchases">
-            <SectionHeader
-                title="Purchase History"
-                action={
-                    canAddPurchase && (
-                        <Button onClick={onAddClick} className="gap-2">
-                            <Plus className="size-4" />
-                            Add Purchase
-                        </Button>
-                    )
-                }
-            />
+            <SectionHeader title="Purchase History" />
 
             {errors.purchases && (
                 <Card className="border-red-200 bg-red-50">

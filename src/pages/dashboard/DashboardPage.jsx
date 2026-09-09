@@ -106,7 +106,7 @@ export default function DashboardPage() {
                                             width={64}
                                         />
                                         <ChartTooltip content={<ChartTooltipContent />} />
-                                        <Bar dataKey="value" fill="var(--color-value)" radius={4} />
+                                        <Bar dataKey="value" fill="var(--color-chart-5)" radius={4} />
                                     </BarChart>
                                 </ChartContainer>
                             ) : (
@@ -152,7 +152,7 @@ export default function DashboardPage() {
                                             {categoryData.map((entry, index) => (
                                                 <Cell
                                                     key={entry.id ?? entry.label}
-                                                    fill={`var(--color-chart-${(index % 5) + 1})`}
+                                                    fill={`var(--color-chart-5)`}
                                                 />
                                             ))}
                                         </Pie>
