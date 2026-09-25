@@ -45,7 +45,7 @@ src/
 Create a `.env` file in the frontend root and point it to the backend API:
 
 ```env
-VITE_API_URL=http://localhost:3000/api
+VITE_API_URL=***
 ```
 
 ## Getting Started
