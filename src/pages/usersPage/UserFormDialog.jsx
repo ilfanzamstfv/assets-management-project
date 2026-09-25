@@ -23,7 +23,7 @@ export default function UserFormDialog({
 }) {
     return (
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-106.25">
                 <DialogHeader>
                     <DialogTitle>{editingUserId ? "Edit User" : "Add User"}</DialogTitle>
                     <DialogDescription>{editingUserId ? "Edit user and assign role." : "Add user and assign role."}</DialogDescription>
